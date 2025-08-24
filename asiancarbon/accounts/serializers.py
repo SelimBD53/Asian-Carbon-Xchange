@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import UserAccount, BankAccount
 from django.contrib.auth.models import User
-
+import random
+from django.core.mail import send_mail
+from asiancarbon.settings import EMAIL_HOST_USER
 
 class UserSerializers(serializers.ModelSerializer):
     full_name = serializers.CharField()
@@ -43,7 +45,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         try:
             user = validated_data.pop('user')
             full_name = user.pop('full_name')
-            
+            otp_code = str(random.randint(100000, 999999))
             phone = validated_data.get('phone')
             name_part = full_name.split(' ')
             first_name = name_part[0]
@@ -54,16 +56,27 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             user_instance.set_password(user.get('password'))
             user_instance.save() 
             
-            user_account = UserAccount.objects.create(user=user_instance)
+            user_account = UserAccount.objects.create(user=user_instance, otp=otp_code)
             for key, value in validated_data.items():
                 setattr(user_account, key, value)
             user_account.save()
+            subject = f"Welcome {full_name} to our Platform"
+            message = f"""
+Hello {first_name},
+
+Welcome to our platform! Your account has been Create Successfully.
+Verify to the account . Your OTP code {otp_code}
+
+
+Best regards,
+Asian Carbon Xchangs"""
+            send_mail(subject, message, EMAIL_HOST_USER, [user_instance.email], fail_silently=False)
             return user_account
 
         except Exception as e:
             print(e)
             raise serializers.ValidationError(
-                {'message : Error Creating Student'})
+                {'message : Error Creating Student! {e}'})
 
 
 class BankAccountSerializers(serializers.ModelSerializer):

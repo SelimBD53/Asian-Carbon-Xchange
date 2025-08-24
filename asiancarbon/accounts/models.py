@@ -12,6 +12,7 @@ class UserAccount(models.Model):
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
     # registration_type = models.CharField(max_length=20, choices=choise, default='Customer')
     nric_number = models.CharField(max_length=20, unique=True)
+    otp = models.CharField(max_length=7, blank=True, null=True)
     
     def __str__(self):
         return self.user.username

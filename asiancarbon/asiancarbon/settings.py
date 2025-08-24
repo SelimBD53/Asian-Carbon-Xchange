@@ -27,8 +27,6 @@ SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ['DEBUG'] == '1' else False
-
-
 ALLOWED_HOSTS = ['*']
 
 
@@ -46,6 +44,7 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
+    'DeviceInverter',
 ]
 
 MIDDLEWARE = [
@@ -183,3 +182,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ['EMAIL_HOST']
+EMAIL_PORT = os.environ['EMAIL_PORT']
+EMAIL_HOST_USER = os.environ['EMAIL_USERNAME']
+EMAIL_HOST_PASSWORD = os.environ['EAMIL_PASSWORD']
+EMAIL_USE_TLS = True
