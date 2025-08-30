@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import SolarDevice, InverterBrand, Inverter
+from .models import SolarDevice, InverterBrand, Inverter, DeviceLocation, GenerationData
 from drf_extra_fields.fields import Base64ImageField
 
 class SolarDeviceSerializer(serializers.ModelSerializer):
@@ -39,7 +39,7 @@ class InverterBrandSerializer(serializers.ModelSerializer):
 class InverterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inverter
-        fields = ['id', 'serial_no', 'capacity_kwp']
+        fields = ['id', 'device', 'brand', 'serial_no', 'capacity_kwp']
         read_only_fields = ['id']
     
     def create(self, validated_data):
@@ -49,4 +49,30 @@ class InverterSerializer(serializers.ModelSerializer):
             return invertes
         except Exception as e:
             return serializers.ValidationError({"message": f"Error From Inverter Creation {e}"})
-        
+    
+class DeviceLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceLocation
+        fields = "__all__"
+    
+    def create(self, validated_data):
+        try:
+            deviceloc = DeviceLocation.objects.create(**validated_data)
+            deviceloc.save()
+            return deviceloc
+        except Exception as e:
+            return serializers.ValidationError({"message": f"Error Creation from Device Location! {e}"})
+
+class GenerationDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GenerationData
+        fields = "__all__"
+    
+    def create(self, validated_data):
+        try:
+            data_user = GenerationData.objects.create(**validated_data)
+            data_user.save()
+            return data_user
+        except Exception as e:
+            return serializers.ValidationError({"message": f"Error From Generation Data Create! {e}"})
+    

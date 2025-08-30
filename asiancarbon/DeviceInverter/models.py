@@ -34,3 +34,35 @@ class Inverter(models.Model):
     
     def __str__(self):
         return self.serial_no
+
+
+class DeviceLocation(models.Model):
+    country_choise = (
+        ('Malaysia', 'Malaysia'),
+        ('Singapore', 'Singapore'),
+        ('Thailand', 'Thailand'),
+        ('India', 'India'),
+    )
+    # only Malaysia state
+    province_choise = (
+        ('Johor', 'Johor'),
+        ('Kedah', 'Kedah'),
+        ('Selangor', 'Selangor'),
+        ('Penang', 'Penang'),
+    )
+    device = models.OneToOneField(SolarDevice, on_delete=models.CASCADE, related_name="solar_device")
+    address = models.TextField()
+    country = models.CharField(max_length=20, choices=country_choise, default='MY')
+    province = models.CharField(max_length=20, choices=province_choise)
+    postal_code = models.CharField(max_length=8)
+    
+    def __str__(self):
+        return f"{self.address}, {self.province}, {self.country}"
+    
+class GenerationData(models.Model):
+    device = models.ForeignKey(SolarDevice, on_delete=models.CASCADE, related_name="generation")
+    date = models.DateField()
+    kwp = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return self.device.code
