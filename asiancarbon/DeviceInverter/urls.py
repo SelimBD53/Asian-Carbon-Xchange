@@ -7,6 +7,7 @@ router.register('Inverter-Brand', views.InverterBrandView, basename='inverterBra
 router.register('Inverter-create', views.InverterView, basename='inverter_create')
 router.register('DeviceLocation-create', views.DeviceLocationView, basename='DeviceLocation_create')
 router.register('Generation-Create', views.GenerationDataView, basename="Generation_data")
+router.register("Confirm-Device", views.ConfirmDeviceView, basename="Confirm_Device")
 urlpatterns = [
     path('', include(router.urls)),
 ]

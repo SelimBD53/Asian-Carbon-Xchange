@@ -37,9 +37,10 @@ class InverterBrandSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"message": f"Inverter Brand Creation Error! {e}"})
         
 class InverterSerializer(serializers.ModelSerializer):
+    brand_name = serializers.CharField(source="brand.name", read_only=True)
     class Meta:
         model = Inverter
-        fields = ['id', 'device', 'brand', 'serial_no', 'capacity_kwp']
+        fields = ['id', 'device', 'brand_name', 'serial_no', 'capacity_kwp']
         read_only_fields = ['id']
     
     def create(self, validated_data):
@@ -75,4 +76,21 @@ class GenerationDataSerializer(serializers.ModelSerializer):
             return data_user
         except Exception as e:
             return serializers.ValidationError({"message": f"Error From Generation Data Create! {e}"})
+
+class ConfirmDeviceSerializer(serializers.ModelSerializer):
+    owner_name = serializers.CharField(source="owner.username", read_only=True)
+    inverter = InverterSerializer(source="Inverters", many=True, read_only=True)
+    device_location = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SolarDevice
+        fields = ['owner_name', 'device_type', 'capacity_kWp', 'cop_date', 'inverter', 'device_location']
+    
+    def get_device_location(self, inst):
+        location = inst.solar_device
+        return {
+            "address": location.address,
+            "country": location.country,
+            "province": location.province 
+        }
     
