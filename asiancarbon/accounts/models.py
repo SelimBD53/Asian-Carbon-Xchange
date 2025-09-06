@@ -3,16 +3,16 @@ from django.contrib.auth.models import AbstractUser, User
 
 
 # Create your models here.
-# choise = (
-#     ('Customer', 'Customer'),
-#     ('Admin', 'Admin')
-# )
+choise = (
+    ('customer', 'Customer'),
+    ('admin', 'Admin')
+)
 class UserAccount(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    # registration_type = models.CharField(max_length=20, choices=choise, default='Customer')
     nric_number = models.CharField(max_length=20, unique=True)
     otp = models.CharField(max_length=7, blank=True, null=True)
+    role = models.CharField(max_length=20, choices=choise, null=True, blank=True, default='customer')
     
     def __str__(self):
         return self.user.username

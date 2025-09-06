@@ -24,13 +24,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['user', 'phone', 'confirm_password', 'nric_number']
-
+        fields = ['user', 'phone', 'confirm_password', 'nric_number', 'role']
+    
+    def validate_role(self, value):
+        if value == 'admin':
+            raise serializers.ValidationError({"message": "Cann't Create role Admin!"})
+        
     def validate(self, data):
         user_data = data.get('user')
         password = user_data.get('password')
         confirm_password = data.get('confirm_password')
-        print(confirm_password)
         try:
             if password != confirm_password:
                 raise serializers.ValidationError({"confirm_password": "Confirm Password did not match!"})
@@ -46,6 +49,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             user = validated_data.pop('user')
             full_name = user.pop('full_name')
             otp_code = str(random.randint(100000, 999999))
+            validated_data['role'] = 'customer'
             phone = validated_data.get('phone')
             name_part = full_name.split(' ')
             first_name = name_part[0]

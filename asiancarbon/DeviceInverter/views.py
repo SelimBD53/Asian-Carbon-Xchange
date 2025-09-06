@@ -4,18 +4,21 @@ from .serializers import SolarDeviceSerializer, InverterBrandSerializer, Inverte
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from accounts.permission import IsCustomer, IsAdmin
+from rest_framework.decorators import action
 # Create your views here.
 
 
 class SolarDeviceView(viewsets.GenericViewSet):
     queryset = SolarDevice.objects.all()
     serializer_class = SolarDeviceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCustomer]
     
     def list(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
+    
     
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -23,21 +26,37 @@ class SolarDeviceView(viewsets.GenericViewSet):
             user = serializer.save(owner=self.request.user)
             return Response({"message": "Device Created Successfully!", 'Device_id': user.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsAdmin])
+    def approval(self, request, pk=None):
+        device = self.get_object()
+        if device.status == 'APPROVED':
+            return Response({"message": "Already approved!"}, status=status.HTTP_400_BAD_REQUEST)
+        device.status = 'APPROVED'
+        device.save()
+        serializer = SolarDeviceSerializer(device)
+        return Response({"message": "Device approved successfully!", "device": serializer.data}, status=status.HTTP_200_OK)
+    
 class InverterBrandView(viewsets.GenericViewSet):
     queryset = InverterBrand.objects.all()
     serializer_class = InverterBrandSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdmin]
     
     def list(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
     
+    def get_permissions(self):
+        if self.action == "list":
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+    
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             inverter = serializer.save()
-            return Response({"message": "Inverter Brand Created Successfully!", "Inverter_logo": inverter.id}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Inverter Brand Created Successfully!", "Inverter_Brand_id": inverter.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
