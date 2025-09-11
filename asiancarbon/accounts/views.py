@@ -39,7 +39,21 @@ class UserRegView(viewsets.GenericViewSet):
                 return Response({"message": "Invalid OTP!"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"message": f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)     
+   
+    def partial_update(self, request, pk=None): 
+        user_data = self.get_object()
+        serializer = self.get_serializer(user_data, data=request.data, partial=True)
+        if serializer.is_valid():   
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self, request, pk=None):
+        user_data = self.get_object()
+        user_data.delete()
+        return Response({"message": "User Data Deleted Successfully"})
+     
+        
 class BankAccountView(viewsets.GenericViewSet):
     queryset = BankAccount.objects.all()
     serializer_class = BankAccountSerializers
@@ -50,4 +64,6 @@ class BankAccountView(viewsets.GenericViewSet):
             accountends = serializer.save()
             return Response({"Message": "Bank Account Created Successfully!", "account_id": accountends.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
 

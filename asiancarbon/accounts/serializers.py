@@ -6,16 +6,19 @@ from django.core.mail import send_mail
 from asiancarbon.settings import EMAIL_HOST_USER
 
 class UserSerializers(serializers.ModelSerializer):
-    full_name = serializers.CharField()
+    full_name = serializers.CharField(write_only=True, required=False)
+    full_named = serializers.SerializerMethodField(read_only=True)
+
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'full_name', 'password']
+        fields = ['id', 'username','full_named', 'email', 'full_name', 'password']
         extra_kwargs = {
             'username': {'read_only': True},
             'full_name': {'write_only': True}
         }
-
+    def get_full_named(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     user = UserSerializers()
@@ -46,10 +49,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            user = validated_data.pop('user')
-            full_name = user.pop('full_name')
             otp_code = str(random.randint(100000, 999999))
             validated_data['role'] = 'customer'
+            user = validated_data.pop('user')
+            
+            full_name = user.pop('full_name')
             phone = validated_data.get('phone')
             name_part = full_name.split(' ')
             first_name = name_part[0]
@@ -81,7 +85,27 @@ Asian Carbon Xchangs"""
             print(e)
             raise serializers.ValidationError(
                 {'message : Error Creating Student! {e}'})
-
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+        if user_data:
+            full_name = user_data.pop('full_name', None)
+            
+            if full_name:
+                phone = validated_data.get('phone', instance.phone)
+                name_part = full_name.split(' ')
+                instance.user.first_name = name_part[0]
+                instance.user.last_name = name_part[1] if len(name_part) > 1 else ''
+                instance.user.username = f"{instance.user.first_name}_{instance.user.last_name}_{phone[-2:]}"
+                
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+        instance.user.save()
+        
+        for key, val in validated_data.items():
+            setattr(instance, key, val)
+        instance.save()
+        return instance   
+        
 
 class BankAccountSerializers(serializers.ModelSerializer):
 

@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from accounts.permission import IsCustomer, IsAdmin
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter 
+from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 
 
@@ -41,9 +43,12 @@ class InverterBrandView(viewsets.GenericViewSet):
     queryset = InverterBrand.objects.all()
     serializer_class = InverterBrandSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    
+    search_fields = ['name']
     
     def list(self, request):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
     
